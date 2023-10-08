@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from abc import ABC, abstractmethod
+from pprint import pprint
 
 
 class LibraryModel(BaseModel):
@@ -35,6 +36,7 @@ def log_add_book(func):
     def wrapper(self, book):
         print(f'Added book: {book._model.title} by {book._model.author}.')
         return func(self, book)
+
     return wrapper
 
 
@@ -44,6 +46,7 @@ def check_book_existence(func):
             return func(self, book)
         else:
             print(f'Book not found!!!')
+
     return wrapper
 
 
@@ -54,7 +57,6 @@ class Library:
     @log_add_book
     def add_book(self, book: Book):
         self.books.append(book)
-        # print(f'Added book: {book._model.title} by {book._model.author}.')
 
     @check_book_existence
     def remove_book(self, book: Book):
@@ -65,14 +67,14 @@ class Library:
             print(f'Book not found!')
 
     def __iter__(self):
-        self.book_zero = 0
+        self.count = 0
         return self
 
     def __next__(self):
-        if self.book_zero >= len(self.books):
+        if self.count >= len(self.books):
             raise StopIteration
-        book = self.books[self.book_zero]
-        self.book_zero += 1
+        book = self.books[self.count]
+        self.count += 1
         return book
 
     def books_by_author(self, author):
@@ -81,6 +83,7 @@ class Library:
 
 if __name__ == '__main__':
     library = Library()
+
     print("Library log:")
     book_1 = Book(LibraryModel(title="The Passage", author="John Smith", date=1985))
     book_2 = Book(LibraryModel(title="Alaska is calling me", author="Will Johnson", date=1998))
@@ -115,3 +118,15 @@ if __name__ == '__main__':
     print(author2_books)
     print("Books available by Amy Wells:")
     print(author3_books)
+
+    print("-------")
+
+    with open("library_list.txt", "w") as file_w:
+        count = 0
+        for book in library.books:
+            count += 1
+            file_w.write(f'{count}. {book}\n')
+
+    with open("library_list.txt", "r") as file_r:
+        library_list = [line.strip() for line in file_r.readlines()]
+        pprint(library_list)
